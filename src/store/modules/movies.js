@@ -2,7 +2,7 @@ import IDs from "@/store/mock/imdb_top250";
 import axios from "@/plugins/axios";
 import mutations from "@/store/mutations";
 
-function serializeRespnse(movies) {
+function serializeResponse(movies) {
   return movies.reduce((acc, movie) => {
     acc[movie.imdbID] = movie;
     return acc;
@@ -60,7 +60,7 @@ const moviesStore = {
 
         const requests = moviesToFetch.map(id => axios.get(`/?i=${id}`));
         const response = await Promise.all(requests);
-        const movies = serializeRespnse(response);
+        const movies = serializeResponse(response);
 
         commit(MOVIES, movies);
       } catch (err) {
@@ -89,16 +89,25 @@ const moviesStore = {
         dispatch("toggleLoader", true, { root: true });
         const response = await axios.get(`/?s=${query}`);
 
-        const movies = serializeRespnse(response.Search);
+        const movies = serializeResponse(response.Search);
 
         commit(MOVIES, movies);
 
         if (response.Error) {
           throw Error(response.Error);
         }
-        console.log(response);
+
       } catch (err) {
         console.log(err.message);
+        dispatch(
+          "showNotify",
+          {
+            msg: err.message,
+            title: "Error",
+            variant: "danger"
+          },
+          { root: true }
+        );
       } finally {
         dispatch("toggleLoader", false, { root: true });
       }
